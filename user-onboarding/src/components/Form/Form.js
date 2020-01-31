@@ -1,87 +1,76 @@
 import React, { useState } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, Field, ErrorMessage } from'formik';
+import { Toast, ToastBody } from 'reactstrap';
 import axios from 'axios';
+import * as Yup from 'yup';
 
-function Login() {
+const LoginForm = () => {
 
-const [users, newUser] = useState([]);
+    const [users, setUsers] = useState([]);
 
-const handleSubmit = (values, tools) => {
-    axios.post('https://reqres.in/api/users', values)
-        .then( response => {
-            console.log(response)
-            newUser(response.data.users)
-            tools.resetForm()
-        })
-        .catch()
-        .finally(() => {
-            tools.setSubmitting(false);
-        })
-}
+    axios
+         .post('https://reqres.in/api/users', users)
+         .then(response => {
+             console.log('axios post works', response)
+             setUsers(...response.data, users)})
+         .catch(error => {console.log('axios not working', error)})
 
+    return (
+        <div className='body'>
+        <Formik
+            initialValues={{ first_name: '', last_name: '', email: '', password: '', terms: ''}}
+            validationSchema={Yup.object({
+                first_name: Yup.string()
+                .min(2, 'Must be 2 characters or more')
+                .required('Required'),
+                last_name: Yup.string()
+                .min(2, 'Must be 2 characters or more')
+                .required('Required'),
+            })}
+            onSubmit={(values, { setSubmitting }) => {
+                setTimeout(() => {
+                  alert(JSON.stringify(values, null, 2));
+                  setSubmitting(false);
+                }, 400);
+              }}
+        >
+            <Form style={{border:'2px dashed blue'}}>
+                <label htmlFor="first_Name">  First Name: </label>
+                <Field name="first_Name" type="text" />
+                <ErrorMessage name="first_Name" />
+            <br/>
+                <label htmlFor="last_Name">  Last Name: </label>
+                <Field name="last_Name" type="text" />
+                <ErrorMessage name="last_Name" />
+            <br/>
+                <label htmlFor="email">  Email Address: </label>
+                <Field name="email" type="email" placeholder='Email'/>
+                <ErrorMessage name="email" />
+            <br/>
+                <label htmlFor="password">  Password: </label>
+                <Field name="password" type="password" placeholder='Password'/>
+                <ErrorMessage name="password" />
+            <br/>
+                <button type="submit">Submit</button>
+            </Form>
+        </Formik>
+        {/* <div className='container' style={{border: '2px dotted red'}}>
+            {props.users.map(user => (
+                //console.log("user in card-list", user),
+                <ul key={user.id}>
+                    <li>
+                        <Toast className='card'>
+                            <ToastBody>
+                                <h2>{user.first_name}{user.last_name}</h2>
+                                <p>{user.email}</p>
+                            </ToastBody>
+                        </Toast>
+                    </li>
+                </ul>)
+            )}
+        </div> */}
+        </div>
+    ) // close return       
+} // close LoginForm
 
-const validate =({ name, email, password, terms}) => {
-    const errors= {};
-  //validate name
-    if(!name){
-      errors.name = 'Name required.'
-    } else if (name.length < 2){
-      errors.name = 'Name must be longer than one letter.'
-    }
-
-  //validate email
-    if(!email){
-      errors.email = 'Email required.'
-    }
-  
-  //validate password
-    if(password.length < 6){
-      errors.password = 'Password must be longer than six characters.'
-    }
-    return errors;
-}
-
-  return (
-    //create the value of the form
-    <Formik 
-      initialValues = {{name: '', email: '', password: '', terms: ''}}
-      onSubmit = { handleSubmit }
-      validate = {validate}
-
-      //create the form html
-      render = {props => {
-        console.log(props);
-
-        return(
-            <div className='container'>
-                <div className='Form'>
-                    <Form>
-                        <Field name='name' type='text' placeholder='Enter Name' required/>
-                        <ErrorMessage name='name' component='div'/>
-                        
-                        <Field name='email' type='text' placeholder='Enter Email' required/>
-                        <ErrorMessage name='email' component='div'/>
-                        
-                        <Field name='password' type='text' placeholder='Enter Password' required/>
-                        <ErrorMessage name='password' component='div'/>
-                        
-                        <Field name='terms' type='checkbox' checked= {props.terms} required/>
-                        
-                        <button type='submit'disabled={props.isSubmitting}>
-                            {
-                                props.isSubmitting ? 'please wait' : 'submit'
-                            }
-                        </button>
-                    </Form>
-                </div>
-                <div className='results' style={{border: '2px solid red'}}>
-                    {users}
-                </div>
-            </div>
-        ) //close return
-      }}//close render function
-    /> //close Formik
-  ); //close return
-}
-
-export default Login;
+export default LoginForm;
